@@ -1,0 +1,172 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: EC2 Template
+
+# Input Parameters
+Parameters:
+### Project Prefix ###
+  PJPrefix:
+    Type: String
+    Description: Project Code
+### Web Instance ###
+  WebAMI:
+    Type: String
+    Default: ami-0b7546e839d7ace12
+    Description: Web AMI
+  WebInstanceClass:
+    Type: String
+    Default: t3.micro
+    Description: WEB InstanceClass
+  WebStorageSize:
+    Type: String
+    Default: 30
+    Description: WEB Server's root volume Sorage size
+  ### Key pair ###
+  KeyName:
+    Description: EC2 Keyname
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    Description: Key Pair
+
+Resources:
+# Instance
+### Web Instance Public 1a ###
+  WebInstance1A: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: !Ref WebAMI
+      InstanceType: !Ref WebInstanceClass
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: '/dev/xvda'
+          Ebs:
+            VolumeSize: !Ref WebStorageSize
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-a" }
+          GroupSet: 
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-sg" }
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-internal-sg" }
+      UserData:
+        Fn::Base64: !Sub
+          - |
+            #!/bin/bash
+            yum -y update
+            yum -y install httpd
+            systemctl start httpd
+            systemctl enable httpd
+            amazon-linux-extras install php7.4
+            echo '<?php phpinfo(); ?>' > /var/www/html/phpinfo.php
+            yum -y install amazon-efs-utils
+            mkdir /mnt/share
+            mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.ap-northeast-1.amazonaws.com:/ /mnt/share
+            echo ${EFS}:/ /mnt/share efs defaults,_netdev 0 0 >> /etc/fstab
+            mount -a
+            touch /var/www/html/healthcheck.html
+          - EFS: { "Fn::ImportValue": !Sub "${PJPrefix}-efs" }
+      Tags:
+          - Key: Name
+            Value: !Sub "${PJPrefix}-web-public-1a"
+          - Key: DLM_tag
+            Value: !Sub "${PJPrefix}-DLM-storage"
+  WebInstance1AEIP:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
+  WebInstance1AEIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref WebInstance1A
+      EIP: !Ref WebInstance1AEIP
+
+### Web Instance private 1c ###
+  WebInstance1C: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: !Ref WebAMI
+      InstanceType: !Ref WebInstanceClass
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: '/dev/xvda'
+          Ebs:
+            VolumeSize: !Ref WebStorageSize
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-c" }
+          GroupSet: 
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-sg" }
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-internal-sg" }
+      UserData:
+        Fn::Base64: !Sub
+          - |
+            #!/bin/bash
+            yum -y update
+            yum -y install httpd
+            systemctl start httpd
+            systemctl enable httpd
+            amazon-linux-extras install php7.4
+            echo '<?php phpinfo(); ?>' > /var/www/html/phpinfo.php
+            yum -y install amazon-efs-utils
+            mkdir /mnt/share
+            mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.ap-northeast-1.amazonaws.com:/ /mnt/share
+            echo ${EFS}:/ /mnt/share efs defaults,_netdev 0 0 >> /etc/fstab
+            mount -a
+            touch /var/www/html/healthcheck.html
+          - EFS: { "Fn::ImportValue": !Sub "${PJPrefix}-efs" }
+      Tags:
+          - Key: Name
+            Value: !Sub "${PJPrefix}-web-Public-1c"
+          - Key: DLM_tag
+            Value: !Sub "${PJPrefix}-DLM-storage"
+  WebInstance1CEIP:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
+  WebInstance1CEIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref WebInstance1C
+      EIP: !Ref WebInstance1CEIP
+
+### DLM ###
+  DLM:
+    Type: "AWS::DLM::LifecyclePolicy"
+    Properties:
+      Description: "Daily EBS Snapshot"
+      State: "ENABLED"
+      ExecutionRoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/AWSDataLifecycleManagerDefaultRole"
+      PolicyDetails:
+        ResourceTypes:
+          - "VOLUME"
+        TargetTags:
+          -
+            Key: "Name"
+            Value: !Sub "${PJPrefix}-DLM-storage"
+        Schedules:
+          -
+            Name: !Sub "${PJPrefix}-daily-snapshot"
+            TagsToAdd:
+              -
+                Key: "type"
+                Value: "DailySnapshot"
+            CreateRule:
+              Interval: 24
+              IntervalUnit: "HOURS"
+              Times:
+                - "09:00"
+            RetainRule:
+              Count: 7
+            CopyTags: true
+
+# Output ParameterssOutputs:
+### WebInstance1 ###
+Outputs:
+  WebInstance1A:
+    Value: !Ref WebInstance1A
+    Export:
+      Name: !Sub "${PJPrefix}-web-public-1a"
+## ALB Security Group ##
+  WebInstance1C:
+    Value: !Ref WebInstance1C
+    Export:
+      Name: !Sub "${PJPrefix}-web-public-1c"

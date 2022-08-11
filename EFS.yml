@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: EFS Template
+
+# Input Parameters
+Parameters:
+### Project Prefix ###
+  PJPrefix:
+    Type: String
+    Description: Project Code
+
+Resources:
+### EFS ###
+  EFS:
+    Type: "AWS::EFS::FileSystem"
+    Properties:
+      Encrypted: true
+      FileSystemTags: 
+      - Key: "Name"
+        Value: !Sub "${PJPrefix}-efs"
+
+#Mount Target
+  MountTargetA:
+    Type: "AWS::EFS::MountTarget"
+    Properties:
+      FileSystemId: !Ref EFS
+      SecurityGroups: 
+      - { "Fn::ImportValue": !Sub "${PJPrefix}-efs-sg" }
+      SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-a" }
+
+  MountTargetC:
+    Type: "AWS::EFS::MountTarget"
+    Properties:
+      FileSystemId: !Ref EFS
+      SecurityGroups: 
+      - { "Fn::ImportValue": !Sub "${PJPrefix}-efs-sg" }
+      SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-c" }
+
+# Output ParameterssOutputs:
+### EFS ###
+Outputs:
+  VPC:
+    Value: !Ref EFS
+    Export:
+      Name: !Sub "${PJPrefix}-efs"

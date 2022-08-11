@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Security Group Template
+
+
+# Input Parameters
+Parameters:
+### Project Prefix ###
+  PJPrefix:
+    Type: String
+    Description: Project Code
+### MyIP ###
+  MyIP:
+    Description: IP address allowed to access EC2
+    Type: String
+    Description: IP from My PC
+
+Resources: 
+# Security Group
+### Web Server Security Group ###
+  WebPublicSG:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: web-public-sg
+      GroupName: WebPublicSG
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-web-public-sg"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort : 22
+          ToPort : 22
+          CidrIp: !Ref MyIP
+        - IpProtocol: tcp
+          FromPort : 80
+          ToPort : 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort : 443
+          ToPort : 443
+          CidrIp: 0.0.0.0/0
+      
+### ALB Security Group ###
+  AlbSG:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: alb-sg
+      GroupName: AlbSG
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      Tags:
+        - Key: Name
+          Value: !Sub "${PJPrefix}-alb-sg"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort : 80
+          ToPort : 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort : 443
+          ToPort : 443
+          CidrIp: 0.0.0.0/0
+            
+### RDS Server Security Group ###
+  RDSSG:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: rds-sg
+      GroupName: RDSSG
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-rds-sg"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort : 3306
+          ToPort : 3306
+          SourceSecurityGroupId: !Ref WebPublicSG
+
+### EFS Server Security Group ###
+  EFSSG:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: efs-sg
+      GroupName: EFSSG
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-efs-sg"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort : 2049
+          ToPort : 2049
+          SourceSecurityGroupId: !Ref WebPublicSG
+
+### Internal Security Group ###
+  InternalSG:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: internal-sg
+      GroupName: InternalSG
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-internal-sg"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 10.0.0.0/16
+
+# Output ParameterssOutputs:
+### WebPublicSG ###
+Outputs:
+  WebPublicSG:
+    Value: !Ref WebPublicSG
+    Export:
+      Name: !Sub "${PJPrefix}-web-public-sg"
+## ALB Security Group ##
+  AlbSG:
+    Value: !Ref AlbSG
+    Export:
+      Name: !Sub "${PJPrefix}-alb-sg"
+## RDS Server Security Group ##
+  RDSSG:
+    Value: !Ref RDSSG
+    Export:
+      Name: !Sub "${PJPrefix}-rds-sg"
+## EFS Server Security Group ##
+  EFSSG:
+    Value: !Ref EFSSG
+    Export:
+      Name: !Sub "${PJPrefix}-efs-sg"
+## Internal Security Group ##
+  InternalSG:
+    Value: !Ref InternalSG
+    Export:
+      Name: !Sub "${PJPrefix}-internal-sg"

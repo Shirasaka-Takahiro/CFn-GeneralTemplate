@@ -164,7 +164,7 @@ Resources:
           Value: !Sub "${PJPrefix}-private-route-c"
 
 
-# Output ParameterssOutputs:
+# Output Parameters:
 ### VPC ###
 Outputs:
   VPC:

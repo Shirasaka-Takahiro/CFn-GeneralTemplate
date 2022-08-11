@@ -158,7 +158,7 @@ Resources:
               Count: 7
             CopyTags: true
 
-# Output ParameterssOutputs:
+# Output Parameters:
 ### WebInstance1 ###
 Outputs:
   WebInstance1A:

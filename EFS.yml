@@ -35,7 +35,7 @@ Resources:
       - { "Fn::ImportValue": !Sub "${PJPrefix}-efs-sg" }
       SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-c" }
 
-# Output ParameterssOutputs:
+# Output Parameters:
 ### EFS ###
 Outputs:
   VPC:

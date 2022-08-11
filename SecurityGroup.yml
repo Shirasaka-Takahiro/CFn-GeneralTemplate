@@ -108,7 +108,7 @@ Resources:
           ToPort: 65535
           CidrIp: 10.0.0.0/16
 
-# Output ParameterssOutputs:
+# Output Parameters:
 ### WebPublicSG ###
 Outputs:
   WebPublicSG:

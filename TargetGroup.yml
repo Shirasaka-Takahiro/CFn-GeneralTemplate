@@ -13,7 +13,7 @@ Resources:
   TargetGroup:
     Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties: 
-      VpcId: !Ref VPC 
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
       Name: !Sub "${PJPrefix}-tg"
       Protocol: HTTP
       Port: 80

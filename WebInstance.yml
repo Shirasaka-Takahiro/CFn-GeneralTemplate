@@ -158,14 +158,14 @@ Resources:
               Count: 7
             CopyTags: true
 
-# Output Parameters:
-### WebInstance1 ###
+# Output ParameterssOutputs:
+### WebInstance1A ###
 Outputs:
   WebInstance1A:
     Value: !Ref WebInstance1A
     Export:
       Name: !Sub "${PJPrefix}-web-public-1a"
-## ALB Security Group ##
+## WebInstance1C ##
   WebInstance1C:
     Value: !Ref WebInstance1C
     Export:

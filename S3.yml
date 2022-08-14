@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: S3 Template
+
+# Input Parameters
+Parameters:
+### Project Prefix ###
+  PJPrefix:
+    Type: String
+    Description: Project Code
+
+
+### Resources ###
+Resources: 
+### S3 ###
+  S3BucketForWaflog:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "aws-waf-logs-${PJPrefix}"
+      AccessControl: Private
+      LifecycleConfiguration:
+        Rules:
+          - Id: AutoDelete
+            Status: Enabled
+            ExpirationInDays: 30
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+        BlockPublicPolicy: True
+        IgnorePublicAcls: True
+        RestrictPublicBuckets: True
+      Tags:
+        - Key: Name
+          Value: !Sub "aws-waf-logs-${PJPrefix}"
+  S3BucketForCFAccessLog:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${PJPrefix}-cf-accesslog-bucket"
+      LifecycleConfiguration:
+        Rules:
+          - Id: AutoDelete
+            Status: Enabled
+            ExpirationInDays: 30
+      AccessControl: LogDeliveryWrite
+      Tags:
+        - Key: Name
+          Value: !Sub "${PJPrefix}-cf-accesslog-bucket"
+
+# Output ParameterssOutputs:
+Outputs:
+### S3 for WAF ###
+  S3BucketForWaflog:
+    Value: !Ref S3BucketForWaflog
+    Export:
+      Name: !Sub "aws-waf-logs-${PJPrefix}"
+### S3 for CloudFront ###
+  S3BucketForCFAccessLog:
+    Value: !Ref S3BucketForCFAccessLog
+    Export:
+      Name: !Sub "${PJPrefix}-cf-accesslog-bucket"

@@ -1,0 +1,117 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Autoscaling Template
+
+# Input Parameters
+Parameters:
+### Project Prefix ###
+  PJPrefix:
+    Type: String
+    Description: Project Code
+### Web Instance ###
+  WebAMI:
+    Type: String
+    Default: ami-0b7546e839d7ace12
+    Description: Web AMI
+  WebInstanceClass:
+    Type: String
+    Default: t3.micro
+    Description: WEB InstanceClass
+  WebStorageSize:
+    Type: String
+    Default: 30
+    Description: WEB Server's root volume Sorage size
+### Auto Scaling Policy ###
+  PredefinedMetricType:
+    Type: String
+    Default: ASGAverageCPUUtilization
+    Description: "PredefinedMetricType. ASGAverageCPUUtilization | ASGAverageNetworkIn | ASGAverageNetworkOut"
+### Key pair ###
+  KeyName:
+    Description: EC2 Keyname
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    Description: Key Pair
+
+### Resources ###
+Resources: 
+### Launch Template ###
+  WebInstanceLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub "${PJPrefix}-web-instance-template"
+      LaunchTemplateData:
+        TagSpecifications:
+        - ResourceType: instance
+          Tags:
+          - Key: Name
+            Value: !Sub "${PJPrefix}-web-instance"
+        ImageId: !Ref WebAMI
+        InstanceType: !Ref WebInstanceClass
+        KeyName: !Ref KeyName
+        BlockDeviceMappings:
+          - DeviceName: '/dev/xvda'
+            Ebs:
+              VolumeSize: !Ref WebStorageSize
+        NetworkInterfaces: 
+          - AssociatePublicIpAddress: "true"
+            DeviceIndex: "0"
+            Groups: 
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-sg" }
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-internal-sg" }
+        UserData:
+          Fn::Base64: !Sub
+            - |
+              #!/bin/bash
+              yum -y update
+              yum -y install httpd
+              systemctl start httpd
+              systemctl enable httpd
+              amazon-linux-extras install php7.4
+              echo '<?php phpinfo(); ?>' > /var/www/html/phpinfo.php
+              yum -y install amazon-efs-utils
+              mkdir /mnt/share
+              mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 ${EFS}.efs.ap-northeast-1.amazonaws.com:/ /mnt/share
+              echo ${EFS}:/ /mnt/share efs defaults,_netdev 0 0 >> /etc/fstab
+              mount -a
+              touch /var/www/html/healthcheck.html
+            - EFS: { "Fn::ImportValue": !Sub "${PJPrefix}-efs" }
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub "${PJPrefix}-autoscalinggroup"
+      VPCZoneIdentifier:
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-a" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-c" }
+      LaunchTemplate:
+        LaunchTemplateId: !Ref WebInstanceLaunchTemplate
+        Version: !GetAtt 'WebInstanceLaunchTemplate.LatestVersionNumber'
+      TargetGroupARNs:
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-tg" }
+      TerminationPolicies:
+        - NewestInstance
+      DesiredCapacity: 2
+      MaxSize: 5
+      MinSize: 1
+      Tags:
+        - Key: Name
+          Value: !Sub "${PJPrefix}-web-public-autoscalinggroup"
+          PropagateAtLaunch: true
+
+  ASGScalingPolicy: 
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties: 
+      AutoScalingGroupName: !Ref AutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        DisableScaleIn: False
+        PredefinedMetricSpecification:
+          PredefinedMetricType: !Ref PredefinedMetricType
+        TargetValue: 50
+
+# Output ParameterssOutputs:
+### ALB ###
+Outputs:
+  AutoScalingGroup:
+    Value: !Ref AutoScalingGroup
+    Export:
+      Name: !Sub "${PJPrefix}-web-public-autoscalinggroup"

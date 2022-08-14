@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFront Template
+
+# Input Parameters
+Parameters:
+### Project Prefix ###
+  PJPrefix:
+    Type: String
+    Description: Project Code
+### ACM Certificate for CloudFront ###
+  ACMCertificateIDCloudFront:
+    Type: String
+    Default: xxxxx-xxxxx-xxxxx-xxxxx
+    Description: ACM Certificate ID for CloudFront
+### Route53 Hosted Zone ###
+  HostedZoneID: 
+    Type: String
+    Default: XXXXXXXXXXXXX
+    Description: Hosted zone ID on Route53
+### Route53 Domain Name ###
+  HostedZoneName:
+    Type: String
+    Default: example.com
+    Description: Hosted zone name on Route53
+### Route53 FQDN for ALB ###
+  FQDNALB:
+    Type: String
+    Default: loadbalancer.XXX.com
+    Description: FQDN for ALB on Route53
+
+### Resources ###
+Resources: 
+###CloudFront###
+  CloudFrontDistribution:
+    Type: "AWS::CloudFront::Distribution"
+    Properties:
+      DistributionConfig:
+        PriceClass: PriceClass_All
+        Aliases:
+        - !Sub "${HostedZoneName}"
+        Origins:
+        - CustomOriginConfig:
+            OriginProtocolPolicy: http-only
+          DomainName: !Sub "${FQDNALB}"
+          Id: !Sub "${FQDNALB}"
+        Logging:
+          IncludeCookies: "false"
+          Bucket: !Sub "${PJPrefix}-cf-accesslog-bucket.s3.ap-northeast-1.amazonaws.com"
+        DefaultCacheBehavior:
+          TargetOriginId: !Sub "${FQDNALB}"
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+          - GET
+          - HEAD
+          CachedMethods:
+          - GET
+          - HEAD
+          DefaultTTL: 300
+          MaxTTL: 86400
+          MinTTL: 60
+          Compress: true
+          ForwardedValues:
+            Cookies:
+              Forward: none
+            QueryString: false
+        ViewerCertificate:
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.1_2016
+          AcmCertificateArn: !Sub "arn:aws:acm:us-east-1:${AWS::AccountId}:certificate/${ACMCertificateIDCloudFront}"
+        HttpVersion: http2
+        Enabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${PJPrefix}-cloudfront"
+
+# Output ParameterssOutputs:
+### ALB ###
+Outputs:
+  CloudFrontDistribution:
+    Value: !Ref CloudFrontDistribution
+    Export:
+      Name: !Sub "${PJPrefix}-cloudfront"

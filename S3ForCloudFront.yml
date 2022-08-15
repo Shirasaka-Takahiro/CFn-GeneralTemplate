@@ -12,24 +12,6 @@ Parameters:
 ### Resources ###
 Resources: 
 ### S3 ###
-  S3BucketForWaflog:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "aws-waf-logs-${PJPrefix}"
-      AccessControl: Private
-      LifecycleConfiguration:
-        Rules:
-          - Id: AutoDelete
-            Status: Enabled
-            ExpirationInDays: 30
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: True
-        BlockPublicPolicy: True
-        IgnorePublicAcls: True
-        RestrictPublicBuckets: True
-      Tags:
-        - Key: Name
-          Value: !Sub "aws-waf-logs-${PJPrefix}"
   S3BucketForCFAccessLog:
     Type: "AWS::S3::Bucket"
     Properties:
@@ -44,13 +26,19 @@ Resources:
         - Key: Name
           Value: !Sub "${PJPrefix}-cf-accesslog-bucket"
 
+  BucketPolicyForCFAccessLog:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref S3BucketForCFAccessLog
+      PolicyDocument:
+        Statement:
+        - Action: "s3:GetObject"
+          Effect: Allow
+          Resource: !Sub "arn:aws:s3:::${S3BucketForCFAccessLog}/*"
+          Principal: '*'
+
 # Output ParameterssOutputs:
 Outputs:
-### S3 for WAF ###
-  S3BucketForWaflog:
-    Value: !Ref S3BucketForWaflog
-    Export:
-      Name: !Sub "aws-waf-logs-${PJPrefix}"
 ### S3 for CloudFront ###
   S3BucketForCFAccessLog:
     Value: !Ref S3BucketForCFAccessLog

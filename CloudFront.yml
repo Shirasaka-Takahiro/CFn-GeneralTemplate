@@ -80,9 +80,13 @@ Resources:
           Value: !Sub "${PJPrefix}-cloudfront"
 
 # Output ParameterssOutputs:
-### ALB ###
+### CloudFront ###
 Outputs:
   CloudFrontDistribution:
     Value: !Ref CloudFrontDistribution
     Export:
       Name: !Sub "${PJPrefix}-cloudfront"
+  CloudFrontDistributionDomainName:
+    Value: !GetAtt "CloudFrontDistribution.DomainName"
+    Export:
+      Name: CloudFrontDistributionDomainName

@@ -85,7 +85,7 @@ Outputs:
   CloudFrontDistribution:
     Value: !Ref CloudFrontDistribution
     Export:
-      Name: !Sub "${PJPrefix}-cloudfront"
+      Name: !Sub "${PJPrefix}-CloudFrontDistribution"
   CloudFrontDistributionDomainName:
     Value: !GetAtt "CloudFrontDistribution.DomainName"
     Export:

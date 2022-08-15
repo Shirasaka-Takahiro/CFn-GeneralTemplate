@@ -71,3 +71,11 @@ Outputs:
     Value: !Ref ALB
     Export:
       Name: !Sub "${PJPrefix}-alb"
+  ALBDNSName:
+    Value: !GetAtt "ALB.DNSName"
+    Export:
+      Name: ALBDNSName
+  ALBHostedZoneId:
+    Value: !GetAtt "ALB.CanonicalHostedZoneID"
+    Export:
+      Name: ALBDNSName

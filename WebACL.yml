@@ -95,7 +95,7 @@ Resources:
     Type: AWS::WAFv2::LoggingConfiguration
     Properties:
       LogDestinationConfigs:
-        - !Sub "aws-waf-logs-${PJPrefix}.s3.ap-northeast-1.amazonaws.com"
+        - !Sub "arn:aws:s3:::aws-waf-logs-${PJPrefix}"
       ResourceArn: !GetAtt WebAcl.Arn
   WAFIPSet:
     Type: AWS::WAFv2::IPSet

@@ -62,7 +62,7 @@ Resources:
           Resource: !Sub "arn:aws:s3:::${S3BucketForWaflog}/*"
           Principal: '*'
 
-# Output ParameterssOutputs:
+# Output Parameters:
 Outputs:
 ### S3 for CloudFront ###
   S3BucketForCFAccessLog:

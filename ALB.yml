@@ -64,7 +64,7 @@ Resources:
       Protocol: HTTPS
       SslPolicy: !Ref ALBSSLPolicy
 
-# Output ParameterssOutputs:
+# Output Parameters:
 ### ALB ###
 Outputs:
   ALB:
@@ -74,8 +74,8 @@ Outputs:
   ALBDNSName:
     Value: !GetAtt "ALB.DNSName"
     Export:
-      Name: ALBDNSName
+      Name: !Sub "${PJPrefix}-ALBDNSName"
   ALBHostedZoneId:
     Value: !GetAtt "ALB.CanonicalHostedZoneID"
     Export:
-      Name: ALBHostedZoneId
+      Name: !Sub "${PJPrefix}-ALBHostedZoneId"

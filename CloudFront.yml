@@ -79,7 +79,7 @@ Resources:
         - Key: Name
           Value: !Sub "${PJPrefix}-cloudfront"
 
-# Output ParameterssOutputs:
+# Output Parameters:
 ### CloudFront ###
 Outputs:
   CloudFrontDistribution:
@@ -89,4 +89,4 @@ Outputs:
   CloudFrontDistributionDomainName:
     Value: !GetAtt "CloudFrontDistribution.DomainName"
     Export:
-      Name: CloudFrontDistributionDomainName
+      Name: !Sub "${PJPrefix}-CloudFrontDistributionDomainName"

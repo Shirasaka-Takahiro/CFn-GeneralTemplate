@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ACM-us-east1 Template
+
+Parameters:
+### Domain name on Route53 ###  
+  Domain:
+    Type: String
+    Default: example.com
+    Description: domain name
+### Route53 Hosted Zone ID ###
+  HostedZoneID: 
+    Type: String
+    Default: XXXXXXXXXXXXX
+    Description: Hosted zone ID on Route53
+
+Resources:
+  ### ACM ###
+  ACM:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Sub "${Domain}"
+      DomainValidationOptions:
+        - DomainName: !Sub "${Domain}"
+          HostedZoneId: !Ref HostedZoneID
+      SubjectAlternativeNames:
+        - !Sub "*.${Domain}"
+      ValidationMethod: DNS
+
+# Output Parameters:
+### ALB ###
+Outputs:
+  ACMUsEast:
+    Value: !Ref ACM
+    Export:
+      Name: ACMUsEast

@@ -16,12 +16,12 @@ Resources:
     Type: "AWS::S3::Bucket"
     Properties:
       BucketName: !Sub "${PJPrefix}-cf-accesslog-bucket"
+      AccessControl: LogDeliveryWrite
       LifecycleConfiguration:
         Rules:
           - Id: AutoDelete
             Status: Enabled
             ExpirationInDays: 30
-      AccessControl: LogDeliveryWrite
       Tags:
         - Key: Name
           Value: !Sub "${PJPrefix}-cf-accesslog-bucket"
@@ -37,21 +37,16 @@ Resources:
           Resource: !Sub "arn:aws:s3:::${S3BucketForCFAccessLog}/*"
           Principal: '*'
   
-    S3BucketForWaflog:
+  S3BucketForWaflog:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "aws-waf-logs-${PJPrefix}"
-      AccessControl: Private
+      AccessControl: LogDeliveryWrite
       LifecycleConfiguration:
         Rules:
           - Id: AutoDelete
             Status: Enabled
             ExpirationInDays: 30
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: True
-        BlockPublicPolicy: True
-        IgnorePublicAcls: True
-        RestrictPublicBuckets: True
       Tags:
         - Key: Name
           Value: !Sub "aws-waf-logs-${PJPrefix}"

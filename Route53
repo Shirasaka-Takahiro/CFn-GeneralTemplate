@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Route53 Template
+
+# Input Parameters
+Parameters:
+### Project Prefix ###
+  PJPrefix:
+    Type: String
+    Description: Project Code
+### Route53 Hosted Zone ###
+  HostedZoneID: 
+    Type: String
+    Default: XXXXXXXXXXXXX
+    Description: Hosted zone ID on Route53
+### Route53 Domain Name ###
+  HostedZoneName:
+    Type: String
+    Default: example.com
+    Description: Hosted zone name on Route53
+
+### Resources ###
+Resources: 
+### Route53 ###
+  Route53RecordSet:
+    Type: "AWS::Route53::RecordSetGroup"
+    Properties:
+      HostedZoneId: !Sub ${HostedZoneID}
+      RecordSets: 
+      - Name: !Sub "${HostedZoneName}"
+        Type: "A"
+        AliasTarget: 
+          HostedZoneId: Z2FDTNDATAQYW2
+          DNSName: { "Fn::ImportValue": !Sub ${PJPrefix}-CloudFrontDistributionDomainName }
+      - Name: !Sub "${FQDNALB}"
+        Type: "A"
+        AliasTarget: 
+          HostedZoneId: { "Fn::ImportValue": !Sub "${PJPrefix}-ALBHostedZoneId" }
+          DNSName: { "Fn::ImportValue": !Sub "${PJPrefix}-ALBDNSName" }

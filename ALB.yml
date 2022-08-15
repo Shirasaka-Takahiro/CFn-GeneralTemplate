@@ -78,4 +78,4 @@ Outputs:
   ALBHostedZoneId:
     Value: !GetAtt "ALB.CanonicalHostedZoneID"
     Export:
-      Name: ALBDNSName
+      Name: ALBHostedZoneId

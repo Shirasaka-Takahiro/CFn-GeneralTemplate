@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: WAF v2 Template
+Description: Web ACL Template
 
 # Input Parameters
 Parameters:
@@ -10,7 +10,7 @@ Parameters:
 ### Web ACl Scope ###
   Scope:
     Type: String
-    Default: REGIONAL
+    Default: CLOUDFRONT
     AllowedValues:
       - REGIONAL
       - CLOUDFRONT
@@ -28,6 +28,7 @@ Parameters:
     Type: String
     Default: 192.168.0.0/16
     Description: Set IP addresses for WAF IPset
+
 
 ### Resources ###
 Resources: 
@@ -94,13 +95,8 @@ Resources:
     Type: AWS::WAFv2::LoggingConfiguration
     Properties:
       LogDestinationConfigs:
-        - { "Fn::ImportValue": !Sub "aws-waf-logs-${PJPrefix}" }
+        - !Sub "arn:aws:s3:::aws-waf-logs-${PJPrefix}"
       ResourceArn: !GetAtt WebAcl.Arn
-  WebACLAssociation:
-    Type: AWS::WAFv2::WebACLAssociation
-    Properties:
-      ResourceArn: { "Fn::ImportValue": !Sub "${PJPrefix}-alb" }
-      WebACLArn: !GetAtt WebAcl.Arn
   WAFIPSet:
     Type: AWS::WAFv2::IPSet
     Properties:
@@ -108,6 +104,7 @@ Resources:
       Scope: !Ref Scope
       IPAddressVersion: IPV4
       Addresses:
-          - !Ref IPv4A
-          - !Ref IPv4B
-          - !Ref IPv4C
+          - 10.0.0.0/16
+          - 192.168.0.0/24
+          - 1.1.1.0/32
+  

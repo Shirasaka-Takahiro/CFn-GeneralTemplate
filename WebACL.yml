@@ -97,6 +97,11 @@ Resources:
       LogDestinationConfigs:
         - !Sub "arn:aws:s3:::aws-waf-logs-${PJPrefix}"
       ResourceArn: !GetAtt WebAcl.Arn
+  WebACLAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: { "Fn::ImportValue": !Sub "${PJPrefix}-alb" }
+      WebACLArn: !GetAtt WebAcl.Arn
   WAFIPSet:
     Type: AWS::WAFv2::IPSet
     Properties:

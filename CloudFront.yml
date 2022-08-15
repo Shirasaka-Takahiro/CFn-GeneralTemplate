@@ -12,6 +12,11 @@ Parameters:
     Type: String
     Default: xxxxx-xxxxx-xxxxx-xxxxx
     Description: ACM Certificate ID for CloudFront
+### WebACL Arn ###
+  WebACLArn:
+    Type: String
+    Default: arn:aws:wafv2:us-east-1:{ACCOUNT}:global/webacl/{NAME}/{ID}
+    Description: CloudFront Arn
 ### Route53 Hosted Zone ###
   HostedZoneID: 
     Type: String
@@ -69,6 +74,7 @@ Resources:
           AcmCertificateArn: !Sub "arn:aws:acm:us-east-1:${AWS::AccountId}:certificate/${ACMCertificateIDCloudFront}"
         HttpVersion: http2
         Enabled: true
+        WebACLId: !Ref WebACLArn
       Tags:
         - Key: Name
           Value: !Sub "${PJPrefix}-cloudfront"

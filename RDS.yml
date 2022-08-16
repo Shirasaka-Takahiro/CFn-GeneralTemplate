@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: RDS Template
+
+# Input Parameters
+Parameters:
+### Project Prefix ###
+  PJPrefix:
+    Type: String
+    Description: Project Code
+### RDS Database type & Major version ###
+  MySQLMajorVersion:
+    Type: String
+    Default: "5.7"
+    AllowedValues: [ "5.5", "5.6", "5.7" ]
+### RDS Database type & Minor version ###
+  MySQLMinorVersion:
+    Type: String
+    Default: "22"
+### Instnce Options ###
+  DBInstanceClass:
+    Type: String
+    Default: "db.m4.large" 
+  DBStorageSize:
+    Type: String
+    Default: "50"
+  DBStorageType:
+    Type: String
+    Default: "gp2"
+### Database name ###
+  DBName:
+    Type: String
+    Default: "testdb"
+### User Options ###
+  DBMasterUserName:
+    Type: String
+    Default: "root"
+    NoEcho: true
+    Description: DB master user name
+  DBPassword: 
+    Default: "DBPassword"
+    NoEcho: true
+    Type: String
+    Description: DB password
+
+### Resources ###
+Resources: 
+### RDS Instance ###
+  DBInstance: 
+    Type: "AWS::RDS::DBInstance"
+    Properties: 
+      DBInstanceIdentifier: !Sub "${PJPrefix}-${DBName}"
+      Engine: MySQL
+      EngineVersion: !Sub "${MySQLMajorVersion}.${MySQLMinorVersion}"
+      DBInstanceClass: !Ref DBInstanceClass
+      AllocatedStorage: !Ref DBStorageSize
+      StorageType: !Ref DBStorageType
+      DBName: !Ref DBName
+      MasterUsername: !Ref DBMasterUserName
+      MasterUserPassword: !Ref DBPassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      PubliclyAccessible: false
+      MultiAZ: true
+      PreferredBackupWindow: "18:00-18:30"
+      PreferredMaintenanceWindow: "sat:19:00-sat:19:30"
+      AutoMinorVersionUpgrade: false
+      DBParameterGroupName: !Ref DBParameterGroup  
+      VPCSecurityGroups:
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-rds-sg" }
+      CopyTagsToSnapshot: true
+      BackupRetentionPeriod: 7
+      Tags: 
+        - Key: "Name"
+          Value: !Ref DBName
+    DeletionPolicy: "Delete"
+
+# DBParameterGroup
+  DBParameterGroup:
+    Type: "AWS::RDS::DBParameterGroup"
+    Properties:
+      Family: !Sub "MySQL${MySQLMajorVersion}"
+      Description: RDS parameter group"
+
+# DBSubnetGroup
+  DBSubnetGroup: 
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties: 
+      DBSubnetGroupName: !Sub "${PJPrefix}-${DBName}-subnet-group"
+      DBSubnetGroupDescription: "-"
+      SubnetIds: 
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-private-subnet-a" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-private-subnet-c" }
+
+# Output Parameters:
+Outputs:
+### DBInstance ###
+  DBInstance:
+    Value: !Ref DBInstance
+    Export:
+      Name: DBInstance

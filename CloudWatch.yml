@@ -1,0 +1,142 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: RDS Template
+
+# Input Parameters
+Parameters:
+### Project Prefix ###
+  PJPrefix:
+    Type: String
+    Description: Project Code
+### SNS Email ###
+  Email:
+    Type: String
+    Description: SNS Email    
+
+### Resources ###
+Resources:
+### SNS ###
+  Topics:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: !Sub "${PJPrefix}-alert"
+      Subscription:
+        - Endpoint: !Ref Email
+          Protocol: email
+      TopicName: !Sub "${PJPrefix}-alert"
+
+# CloudWatch 
+### CPU ###
+  CPUAlarmWebInstance1A:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref Topics
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: '300'
+      EvaluationPeriods: '1'
+      Threshold: '80'
+      OKActions:
+        - !Ref Topics
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: InstanceId
+          Value: { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-1a" }
+  
+  CPUAlarmWebInstance1C:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref Topics
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: '300'
+      EvaluationPeriods: '1'
+      Threshold: '80'
+      OKActions:
+        - !Ref Topics
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: InstanceId
+          Value: { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-1c" }
+
+### ELB ###
+  UnHealthyHostCount:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref Topics
+      AlarmName: 
+      MetricName: UnHealthyHostCount
+      Namespace: AWS/ApplicationELB
+      Statistic: Average
+      Period: '300'
+      EvaluationPeriods: '1'
+      Threshold: '0'
+      OKActions:
+        - !Ref Topics
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: TargetGroup
+          Value: { "Fn::ImportValue": !Sub "${PJPrefix}-TargetGroupFullName" }
+        - Name: LoadBalancer
+          Value: { "Fn::ImportValue": !Sub "${PJPrefix}-ALBLoadBalancerFullName" }
+
+### RDS ###
+  CPUUtilizationRDS:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref Topics
+      AlarmName: !Sub "${PJPrefix}-CPUUtilization-RDS"
+      MetricName: CPUUtilization
+      Namespace: AWS/RDS
+      Statistic: Average
+      Period: '300'
+      EvaluationPeriods: '1'
+      Threshold: '80'
+      OKActions:
+        - !Ref Topics
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: DBInstanceIdentifier
+          Value: !ImportValue DBInstance
+
+  FreeableMemoryRDS:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref Topics
+      AlarmName: !Sub "${PJPrefix}-FreeableMemory-RDS"
+      MetricName: FreeableMemory
+      Namespace: AWS/RDS
+      Statistic: Average
+      Period: '300'
+      EvaluationPeriods: '1'
+      Threshold: '41943040'
+      OKActions:
+        - !Ref Topics
+      ComparisonOperator: LessThanThreshold
+      Dimensions:
+        - Name: DBInstanceIdentifier
+          Value: !ImportValue DBInstance
+
+  FreeableStorageRDS:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref Topics
+      MetricName: FreeStorageSpace
+      Namespace: AWS/RDS
+      Statistic: Average
+      Period: '300'
+      EvaluationPeriods: '1'
+      Threshold: '21474836480'
+      OKActions:
+        - !Ref Topics
+      ComparisonOperator: LessThanThreshold
+      Dimensions:
+        - Name: DBInstanceIdentifier
+          Value: !ImportValue DBInstance

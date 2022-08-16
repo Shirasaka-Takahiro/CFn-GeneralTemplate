@@ -66,6 +66,14 @@ Outputs:
     Value: !Ref ALB
     Export:
       Name: !Sub "${PJPrefix}-alb"
+  ALBLoadBalancerName:
+    Value: !GetAtt "ALB.LoadBalancerName"
+    Export:
+      Name: !Sub "${PJPrefix}-ALBLoadBalancerName"
+  ALBLoadBalancerFullName:
+    Value: !GetAtt "ALB.LoadBalancerFullName"
+    Export:
+      Name: !Sub "${PJPrefix}-ALBLoadBalancerFullName"
   ALBDNSName:
     Value: !GetAtt "ALB.DNSName"
     Export:

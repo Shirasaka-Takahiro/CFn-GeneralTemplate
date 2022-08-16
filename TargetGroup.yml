@@ -50,3 +50,7 @@ Outputs:
     Value: !Ref TargetGroup
     Export:
       Name: !Sub "${PJPrefix}-tg"
+  TargetGroupFullName:
+    Value: !GetAtt "TargetGroup.TargetGroupFullName"
+    Export:
+      Name: !Sub "${PJPrefix}-TargetGroupFullName"

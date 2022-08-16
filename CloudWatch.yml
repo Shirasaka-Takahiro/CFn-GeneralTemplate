@@ -68,11 +68,9 @@ Resources:
     Properties:
       AlarmActions:
         - !Ref Topics
-      AlarmName:
-        - Fn::Join:
-          - "-"
-          - - { "Fn::ImportValue": !Sub "${PJPrefix}-ALBLoadBalancerName" }
-            - UnHealthyHostCount
+      AlarmName: !Sub
+        - ${ALBLoadBalancerName}-UnHealthyHostCount
+        - ALBLoadBalancerName: { "Fn::ImportValue": !Sub "${PJPrefix}-ALBLoadBalancerName" }
       MetricName: UnHealthyHostCount
       Namespace: AWS/ApplicationELB
       Statistic: Average

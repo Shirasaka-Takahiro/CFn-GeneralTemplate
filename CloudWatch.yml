@@ -31,6 +31,9 @@ Resources:
     Properties:
       AlarmActions:
         - !Ref Topics
+      AlarmName: !Sub
+        - ${WebInstance1A}-CPUUtilization
+        - WebInstance1A: { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-1a" }
       MetricName: CPUUtilization
       Namespace: AWS/EC2
       Statistic: Average
@@ -49,6 +52,9 @@ Resources:
     Properties:
       AlarmActions:
         - !Ref Topics
+      AlarmName: !Sub
+        - ${WebInstance1C}-CPUUtilization
+        - WebInstance1C: { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-1c" }
       MetricName: CPUUtilization
       Namespace: AWS/EC2
       Statistic: Average
@@ -130,6 +136,7 @@ Resources:
     Properties:
       AlarmActions:
         - !Ref Topics
+      AlarmName: !Sub "${PJPrefix}-FreeableStorage-RDS"
       MetricName: FreeStorageSpace
       Namespace: AWS/RDS
       Statistic: Average

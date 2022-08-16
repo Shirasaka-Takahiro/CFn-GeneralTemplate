@@ -24,8 +24,6 @@ Resources:
           Protocol: email
       TopicName: !Sub "${PJPrefix}-alert"
 
-### Resources ###
-Resources: 
 # CloudWatch 
 ### CPU ###
   CPUAlarmWebInstance1A:

@@ -174,9 +174,9 @@ Outputs:
   WebInstance1APublicIP:
     Value: !GetAtt WebInstance1A.PublicIp
     Export:
-      Name: !Sub WebInstance1A.PublicIp
+      Name: !Sub "${PJPrefix}-WebInstance1APublicIP"
 ### WebInstance1C Public IP ###
   WebInstance1CPublicIP:
     Value: !GetAtt WebInstance1C.PublicIp
     Export:
-      Name: !Sub WebInstance1C.PublicIp
+      Name: !Sub "${PJPrefix}-WebInstance1CPublicIP"

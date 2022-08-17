@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Route53 General Template
+
+# Input Parameters
+Parameters:
+### Route53 Hosted Zone ###
+  HostedZoneID: 
+    Type: String
+    Default: XXXXXXXXXXXXX
+    Description: Hosted zone ID on Route53
+### Route53 Domain Name ###
+  HostedZoneName:
+    Type: String
+    Default: example.com
+    Description: Hosted zone name on Route53
+### Nakid Domain Record Value ###
+  NakidDomainRecordValue:
+    Type: String
+    Default: xxxx.xxxx.xxxx.xxxx
+    Description: Nakid Domain Record Value
+### Sub Domain Record Value ###
+  SubDomainRecordValue:
+    Type: String
+    Default: xxxx.xxxx.xxxx.xxxx
+    Description: Sub Domain Record Value
+
+### Resources ###
+Resources: 
+### Route53 ###
+  Route53RecordSet:
+    Type: "AWS::Route53::RecordSetGroup"
+    Properties:
+      HostedZoneId: !Ref HostedZoneID
+      RecordSets:
+      - Name: !Sub "${HostedZoneName}."
+        Type: "A"
+        ResourceRecords: 
+        - !Ref NakidDomainRecordValue
+      - Name: !Sub "www.${HostedZoneName}."
+        Type: "A"
+        ResourceRecords:
+        - !Ref SubDomainRecordValue

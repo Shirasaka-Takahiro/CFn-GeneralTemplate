@@ -152,7 +152,7 @@ Outputs:
     Export:
       Name: !Sub "${PJPrefix}-internal-sg"
 ## ElastiCache Security Group ##
-  ElasticacheSG:
-    Value: !Ref ElasticacheSG
+  ElastiCacheSG:
+    Value: !Ref ElastiCacheSG
     Export:
       Name: !Sub "${PJPrefix}-elasticache-sg"

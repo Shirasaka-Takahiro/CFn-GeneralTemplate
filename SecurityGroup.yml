@@ -108,6 +108,22 @@ Resources:
           ToPort: 65535
           CidrIp: 10.0.0.0/16
 
+### ElastiCache Security Group ###
+  ElastiCacheSG:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: elasticache-sg
+      GroupName: ElastiCacheSG
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-elasticache-sg"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort : 6379
+          ToPort : 6379
+          CidrIp: 0.0.0.0/0
+
 # Output Parameters:
 ### WebPublicSG ###
 Outputs:
@@ -135,3 +151,8 @@ Outputs:
     Value: !Ref InternalSG
     Export:
       Name: !Sub "${PJPrefix}-internal-sg"
+## ElastiCache Security Group ##
+  ElasticacheSG:
+    Value: !Ref ElasticacheSG
+    Export:
+      Name: !Sub "${PJPrefix}-elasticache-sg"

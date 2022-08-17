@@ -158,7 +158,7 @@ Resources:
               Count: 7
             CopyTags: true
 
-# Output ParameterssOutputs:
+# Output Parameters:
 ### WebInstance1A ###
 Outputs:
   WebInstance1A:
@@ -170,3 +170,13 @@ Outputs:
     Value: !Ref WebInstance1C
     Export:
       Name: !Sub "${PJPrefix}-web-public-1c"
+### WebInstance1A Public IP ###
+  WebInstance1APublicIP:
+    Value: !GetAtt WebInstance1A.PublicIp
+    Export:
+      Name: !Sub WebInstance1A.PublicIp
+### WebInstance1C Public IP ###
+  WebInstance1CPublicIP:
+    Value: !GetAtt WebInstance1C.PublicIp
+    Export:
+      Name: !Sub WebInstance1C.PublicIp

@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ElastiCache Template
+
+# Input Parameters
+Parameters:
+### Project Prefix ###
+  PJPrefix:
+    Type: String
+    Description: Project Code
+### Instance Type ###
+  InstanceType:
+    Type: String
+    Default: cache.r4.large
+    Description: Instance Type for ElastiCache
+### Engine Version ###
+  EngineVersion:
+    Type: String
+    Default: 4.0.10
+    Description: Engine Version for Redis
+
+Resources:
+### Parameter Group ###
+  ECacheMemdPG:
+    Type: 'AWS::ElastiCache::ParameterGroup'
+    Properties:
+      CacheParameterGroupFamily: memcached1.4
+      Description: "memcached cluster Params"
+  ECacheRedisPG:
+    Type: 'AWS::ElastiCache::ParameterGroup'
+    Properties:
+      CacheParameterGroupFamily: Redis4.0
+      Description: "redis cluster Params"
+      Properties:
+        cluster-enabled: "yes"
+
+### Subnet Group ###
+  ECacheSubnetSG:
+    Type: 'AWS::ElastiCache::SubnetGroup'
+    Properties:
+      CacheSubnetGroupName: !Sub "${PJPrefix}-subnet-group"
+      Description: elasticache-subnet-group
+      SubnetIds:
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-private-subnet-a" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-private-subnet-c" }
+
+### ElastiCache ###
+  ECacheRedis:
+    Type: 'AWS::ElastiCache::ReplicationGroup'
+    Properties:
+      AutomaticFailoverEnabled: true
+      AutoMinorVersionUpgrade: false
+      CacheNodeType: !Ref InstanceType
+      CacheParameterGroupName: !Ref ECacheRedisPG
+      CacheSubnetGroupName: !Ref ECacheSubnetSG
+      Engine: redis
+      EngineVersion: !Ref EngineVersion
+      NodeGroupConfiguration:
+        - PrimaryAvailabilityZone: ap-northeast-1a
+          ReplicaAvailabilityZones:
+            - ap-northeast-1a
+            - ap-northeast-1c
+        - PrimaryAvailabilityZone: ap-northeast-1c
+          ReplicaAvailabilityZones:
+            - ap-northeast-1c
+            - ap-northeast-1a
+      NumNodeGroups: 2
+      Port: 6379
+      PreferredMaintenanceWindow: 'sun:17:00-sun:20:00'
+      ReplicationGroupDescription: redis-cluster-01
+      ReplicationGroupId: !Sub "${PJPrefix}-redis-cluster-01"
+      ReplicasPerNodeGroup: 2
+      SecurityGroupIds: 
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-elasticache-sg" }
+      Tags: 
+        - Key: Name
+          Value: !Sub "${PJPrefix}-elasticache-redis"

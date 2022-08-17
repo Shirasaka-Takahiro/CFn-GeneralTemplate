@@ -34,9 +34,11 @@ Resources:
       RecordSets:
       - Name: !Sub "${HostedZoneName}."
         Type: "A"
+        TTL: 300
         ResourceRecords: 
         - !Ref NakidDomainRecordValue
       - Name: !Sub "www.${HostedZoneName}."
         Type: "A"
+        TTL: 300
         ResourceRecords:
         - !Ref SubDomainRecordValue

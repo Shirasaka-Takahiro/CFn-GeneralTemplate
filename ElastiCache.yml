@@ -7,6 +7,11 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
 ### Instance Type ###
   InstanceType:
     Type: String
@@ -37,11 +42,11 @@ Resources:
   ECacheSubnetSG:
     Type: 'AWS::ElastiCache::SubnetGroup'
     Properties:
-      CacheSubnetGroupName: !Sub "${PJPrefix}-subnet-group"
+      CacheSubnetGroupName: !Sub "${PJPrefix}-${Environment}-elasticache-subnet-group"
       Description: elasticache-subnet-group
       SubnetIds:
-        - { "Fn::ImportValue": !Sub "${PJPrefix}-private-subnet-a" }
-        - { "Fn::ImportValue": !Sub "${PJPrefix}-private-subnet-c" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-private-subnet-a" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-private-subnet-c" }
 
 ### ElastiCache ###
   ECacheRedis:
@@ -67,10 +72,10 @@ Resources:
       Port: 6379
       PreferredMaintenanceWindow: 'sun:17:00-sun:20:00'
       ReplicationGroupDescription: redis-cluster-01
-      ReplicationGroupId: !Sub "${PJPrefix}-redis-cluster-01"
+      ReplicationGroupId: !Sub "${PJPrefix}-${Environment}-redis-cluster-01"
       ReplicasPerNodeGroup: 2
       SecurityGroupIds: 
-        - { "Fn::ImportValue": !Sub "${PJPrefix}-elasticache-sg" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-elasticache-sg" }
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-elasticache-redis"
+          Value: !Sub "${PJPrefix}-${Environment}-elasticache-redis"

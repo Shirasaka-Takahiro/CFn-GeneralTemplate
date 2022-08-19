@@ -7,6 +7,11 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
 ### RDS Database type & Major version ###
   MySQLMajorVersion:
     Type: String
@@ -48,7 +53,7 @@ Resources:
   DBInstance: 
     Type: "AWS::RDS::DBInstance"
     Properties: 
-      DBInstanceIdentifier: !Sub "${PJPrefix}-${DBName}"
+      DBInstanceIdentifier: !Sub "${PJPrefix}-${Environment}-${DBName}"
       Engine: MySQL
       EngineVersion: !Sub "${MySQLMajorVersion}.${MySQLMinorVersion}"
       DBInstanceClass: !Ref DBInstanceClass
@@ -65,7 +70,7 @@ Resources:
       AutoMinorVersionUpgrade: false
       DBParameterGroupName: !Ref DBParameterGroup  
       VPCSecurityGroups:
-        - { "Fn::ImportValue": !Sub "${PJPrefix}-rds-sg" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-rds-sg" }
       CopyTagsToSnapshot: true
       BackupRetentionPeriod: 7
       Tags: 
@@ -84,11 +89,11 @@ Resources:
   DBSubnetGroup: 
     Type: "AWS::RDS::DBSubnetGroup"
     Properties: 
-      DBSubnetGroupName: !Sub "${PJPrefix}-${DBName}-subnet-group"
+      DBSubnetGroupName: !Sub "${PJPrefix}-${Environment}-${DBName}-subnet-group"
       DBSubnetGroupDescription: "-"
       SubnetIds: 
-        - { "Fn::ImportValue": !Sub "${PJPrefix}-private-subnet-a" }
-        - { "Fn::ImportValue": !Sub "${PJPrefix}-private-subnet-c" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-private-subnet-a" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-private-subnet-c" }
 
 # Output Parameters:
 Outputs:

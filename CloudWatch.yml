@@ -7,6 +7,11 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
 ### SNS Email ###
   Email:
     Type: String
@@ -18,11 +23,11 @@ Resources:
   Topics:
     Type: AWS::SNS::Topic
     Properties:
-      DisplayName: !Sub "${PJPrefix}-alert"
+      DisplayName: !Sub "${PJPrefix}-${Environment}-alert"
       Subscription:
         - Endpoint: !Ref Email
           Protocol: email
-      TopicName: !Sub "${PJPrefix}-alert"
+      TopicName: !Sub "${PJPrefix}-${Environment}-alert"
 
 # CloudWatch 
 ### CPU ###
@@ -33,7 +38,7 @@ Resources:
         - !Ref Topics
       AlarmName: !Sub
         - ${WebInstance1A}-CPUUtilization
-        - WebInstance1A: { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-1a" }
+        - WebInstance1A: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-web-public-1a" }
       MetricName: CPUUtilization
       Namespace: AWS/EC2
       Statistic: Average
@@ -45,7 +50,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: InstanceId
-          Value: { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-1a" }
+          Value: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-web-public-1a" }
   
   CPUAlarmWebInstance1C:
     Type: AWS::CloudWatch::Alarm
@@ -54,7 +59,7 @@ Resources:
         - !Ref Topics
       AlarmName: !Sub
         - ${WebInstance1C}-CPUUtilization
-        - WebInstance1C: { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-1c" }
+        - WebInstance1C: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-web-public-1c" }
       MetricName: CPUUtilization
       Namespace: AWS/EC2
       Statistic: Average
@@ -66,7 +71,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: InstanceId
-          Value: { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-1c" }
+          Value: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-web-public-1c" }
 
 ### ELB ###
   UnHealthyHostCount:
@@ -76,7 +81,7 @@ Resources:
         - !Ref Topics
       AlarmName: !Sub
         - ${ALBLoadBalancerName}-UnHealthyHostCount
-        - ALBLoadBalancerName: { "Fn::ImportValue": !Sub "${PJPrefix}-ALBLoadBalancerName" }
+        - ALBLoadBalancerName: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-ALBLoadBalancerName" }
       MetricName: UnHealthyHostCount
       Namespace: AWS/ApplicationELB
       Statistic: Average
@@ -88,9 +93,9 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
         - Name: TargetGroup
-          Value: { "Fn::ImportValue": !Sub "${PJPrefix}-TargetGroupFullName" }
+          Value: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-TargetGroupFullName" }
         - Name: LoadBalancer
-          Value: { "Fn::ImportValue": !Sub "${PJPrefix}-ALBLoadBalancerFullName" }
+          Value: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-ALBLoadBalancerFullName" }
 
 ### RDS ###
   CPUUtilizationRDS:
@@ -98,7 +103,7 @@ Resources:
     Properties:
       AlarmActions:
         - !Ref Topics
-      AlarmName: !Sub "${PJPrefix}-CPUUtilization-RDS"
+      AlarmName: !Sub "${PJPrefix}-${Environment}-CPUUtilization-RDS"
       MetricName: CPUUtilization
       Namespace: AWS/RDS
       Statistic: Average
@@ -117,7 +122,7 @@ Resources:
     Properties:
       AlarmActions:
         - !Ref Topics
-      AlarmName: !Sub "${PJPrefix}-FreeableMemory-RDS"
+      AlarmName: !Sub "${PJPrefix}-${Environment}-FreeableMemory-RDS"
       MetricName: FreeableMemory
       Namespace: AWS/RDS
       Statistic: Average
@@ -136,7 +141,7 @@ Resources:
     Properties:
       AlarmActions:
         - !Ref Topics
-      AlarmName: !Sub "${PJPrefix}-FreeableStorage-RDS"
+      AlarmName: !Sub "${PJPrefix}-${Environment}-FreeableStorage-RDS"
       MetricName: FreeStorageSpace
       Namespace: AWS/RDS
       Statistic: Average

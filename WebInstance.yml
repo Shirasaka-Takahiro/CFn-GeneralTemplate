@@ -7,6 +7,11 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
 ### Web Instance ###
   WebAMI:
     Type: String
@@ -42,10 +47,10 @@ Resources:
       NetworkInterfaces: 
         - AssociatePublicIpAddress: "true"
           DeviceIndex: "0"
-          SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-a" }
+          SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-public-subnet-a" }
           GroupSet: 
-            - { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-sg" }
-            - { "Fn::ImportValue": !Sub "${PJPrefix}-internal-sg" }
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-web-public-sg" }
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-internal-sg" }
       UserData:
         Fn::Base64: !Sub
           - |
@@ -62,12 +67,12 @@ Resources:
             echo ${EFS}:/ /mnt/share efs defaults,_netdev 0 0 >> /etc/fstab
             mount -a
             touch /var/www/html/healthcheck.html
-          - EFS: { "Fn::ImportValue": !Sub "${PJPrefix}-efs" }
+          - EFS: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-efs" }
       Tags:
           - Key: Name
-            Value: !Sub "${PJPrefix}-web-public-1a"
+            Value: !Sub "${PJPrefix}-${Environment}-web-public-1a"
           - Key: DLM_tag
-            Value: !Sub "${PJPrefix}-DLM-storage"
+            Value: !Sub "${PJPrefix}-${Environment}-DLM-storage"
   WebInstance1AEIP:
     Type: "AWS::EC2::EIP"
     Properties:
@@ -92,10 +97,10 @@ Resources:
       NetworkInterfaces: 
         - AssociatePublicIpAddress: "true"
           DeviceIndex: "0"
-          SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-c" }
+          SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-public-subnet-c" }
           GroupSet: 
-            - { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-sg" }
-            - { "Fn::ImportValue": !Sub "${PJPrefix}-internal-sg" }
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-web-public-sg" }
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-internal-sg" }
       UserData:
         Fn::Base64: !Sub
           - |
@@ -112,12 +117,12 @@ Resources:
             echo ${EFS}:/ /mnt/share efs defaults,_netdev 0 0 >> /etc/fstab
             mount -a
             touch /var/www/html/healthcheck.html
-          - EFS: { "Fn::ImportValue": !Sub "${PJPrefix}-efs" }
+          - EFS: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-efs" }
       Tags:
           - Key: Name
-            Value: !Sub "${PJPrefix}-web-Public-1c"
+            Value: !Sub "${PJPrefix}-${Environment}-web-Public-1c"
           - Key: DLM_tag
-            Value: !Sub "${PJPrefix}-DLM-storage"
+            Value: !Sub "${PJPrefix}-${Environment}-DLM-storage"
   WebInstance1CEIP:
     Type: "AWS::EC2::EIP"
     Properties:
@@ -141,10 +146,10 @@ Resources:
         TargetTags:
           -
             Key: "Name"
-            Value: !Sub "${PJPrefix}-DLM-storage"
+            Value: !Sub "${PJPrefix}-${Environment}-DLM-storage"
         Schedules:
           -
-            Name: !Sub "${PJPrefix}-daily-snapshot"
+            Name: !Sub "${PJPrefix}-${Environment}-daily-snapshot"
             TagsToAdd:
               -
                 Key: "type"
@@ -164,19 +169,19 @@ Outputs:
   WebInstance1A:
     Value: !Ref WebInstance1A
     Export:
-      Name: !Sub "${PJPrefix}-web-public-1a"
+      Name: !Sub "${PJPrefix}-${Environment}-web-public-1a"
 ## WebInstance1C ##
   WebInstance1C:
     Value: !Ref WebInstance1C
     Export:
-      Name: !Sub "${PJPrefix}-web-public-1c"
+      Name: !Sub "${PJPrefix}-${Environment}-web-public-1c"
 ### WebInstance1A Public IP ###
   WebInstance1APublicIP:
     Value: !GetAtt WebInstance1A.PublicIp
     Export:
-      Name: !Sub "${PJPrefix}-WebInstance1APublicIP"
+      Name: !Sub "${PJPrefix}-${Environment}-WebInstance1APublicIP"
 ### WebInstance1C Public IP ###
   WebInstance1CPublicIP:
     Value: !GetAtt WebInstance1C.PublicIp
     Export:
-      Name: !Sub "${PJPrefix}-WebInstance1CPublicIP"
+      Name: !Sub "${PJPrefix}-${Environment}-WebInstance1CPublicIP"

@@ -7,6 +7,11 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
 
 Resources:
 ### EFS ###
@@ -16,7 +21,7 @@ Resources:
       Encrypted: true
       FileSystemTags: 
       - Key: "Name"
-        Value: !Sub "${PJPrefix}-efs"
+        Value: !Sub "${PJPrefix}-${Environment}-efs"
 
 #Mount Target
   MountTargetA:
@@ -24,16 +29,16 @@ Resources:
     Properties:
       FileSystemId: !Ref EFS
       SecurityGroups: 
-      - { "Fn::ImportValue": !Sub "${PJPrefix}-efs-sg" }
-      SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-a" }
+      - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-efs-sg" }
+      SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-public-subnet-a" }
 
   MountTargetC:
     Type: "AWS::EFS::MountTarget"
     Properties:
       FileSystemId: !Ref EFS
       SecurityGroups: 
-      - { "Fn::ImportValue": !Sub "${PJPrefix}-efs-sg" }
-      SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-c" }
+      - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-efs-sg" }
+      SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-public-subnet-c" }
 
 # Output Parameters:
 ### EFS ###
@@ -41,4 +46,4 @@ Outputs:
   VPC:
     Value: !Ref EFS
     Export:
-      Name: !Sub "${PJPrefix}-efs"
+      Name: !Sub "${PJPrefix}-${Environment}-efs"

@@ -7,6 +7,11 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
 ### Web Instance ###
   WebAMI:
     Type: String
@@ -37,13 +42,13 @@ Resources:
   WebInstanceLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
-      LaunchTemplateName: !Sub "${PJPrefix}-web-instance-template"
+      LaunchTemplateName: !Sub "${PJPrefix}-${Environment}-web-instance-template"
       LaunchTemplateData:
         TagSpecifications:
         - ResourceType: instance
           Tags:
           - Key: Name
-            Value: !Sub "${PJPrefix}-web-instance"
+            Value: !Sub "${PJPrefix}-${Environment}-web-instance"
         ImageId: !Ref WebAMI
         InstanceType: !Ref WebInstanceClass
         KeyName: !Ref KeyName
@@ -55,8 +60,8 @@ Resources:
           - AssociatePublicIpAddress: "true"
             DeviceIndex: "0"
             Groups: 
-            - { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-sg" }
-            - { "Fn::ImportValue": !Sub "${PJPrefix}-internal-sg" }
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-web-public-sg" }
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-internal-sg" }
         UserData:
           Fn::Base64: !Sub
             - |
@@ -73,20 +78,20 @@ Resources:
               echo ${EFS}:/ /mnt/share efs defaults,_netdev 0 0 >> /etc/fstab
               mount -a
               touch /var/www/html/healthcheck.html
-            - EFS: { "Fn::ImportValue": !Sub "${PJPrefix}-efs" }
+            - EFS: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-efs" }
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      AutoScalingGroupName: !Sub "${PJPrefix}-autoscalinggroup"
+      AutoScalingGroupName: !Sub "${PJPrefix}-${Environment}-autoscalinggroup"
       VPCZoneIdentifier:
-        - { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-a" }
-        - { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-c" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-public-subnet-a" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-public-subnet-c" }
       LaunchTemplate:
         LaunchTemplateId: !Ref WebInstanceLaunchTemplate
         Version: !GetAtt 'WebInstanceLaunchTemplate.LatestVersionNumber'
       TargetGroupARNs:
-        - { "Fn::ImportValue": !Sub "${PJPrefix}-tg" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-tg" }
       TerminationPolicies:
         - NewestInstance
       DesiredCapacity: 2
@@ -94,7 +99,7 @@ Resources:
       MinSize: 1
       Tags:
         - Key: Name
-          Value: !Sub "${PJPrefix}-web-public-autoscalinggroup"
+          Value: !Sub "${PJPrefix}-${Environment}-web-public-autoscalinggroup"
           PropagateAtLaunch: true
 
   ASGScalingPolicy: 
@@ -114,4 +119,4 @@ Outputs:
   AutoScalingGroup:
     Value: !Ref AutoScalingGroup
     Export:
-      Name: !Sub "${PJPrefix}-web-public-autoscalinggroup"
+      Name: !Sub "${PJPrefix}-${Environment}-web-public-autoscalinggroup"

@@ -7,7 +7,11 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
-
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
 
 ### Resources ###
 Resources: 
@@ -15,7 +19,7 @@ Resources:
   S3BucketForCFAccessLog:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !Sub "${PJPrefix}-cf-accesslog-bucket"
+      BucketName: !Sub "${PJPrefix}-${Environment}-cf-accesslog-bucket"
       AccessControl: LogDeliveryWrite
       LifecycleConfiguration:
         Rules:
@@ -24,7 +28,7 @@ Resources:
             ExpirationInDays: 30
       Tags:
         - Key: Name
-          Value: !Sub "${PJPrefix}-cf-accesslog-bucket"
+          Value: !Sub "${PJPrefix}-${Environment}-cf-accesslog-bucket"
 
   BucketPolicyForCFAccessLog:
     Type: "AWS::S3::BucketPolicy"
@@ -40,7 +44,7 @@ Resources:
   S3BucketForWaflog:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "aws-waf-logs-${PJPrefix}"
+      BucketName: !Sub "aws-waf-logs-${PJPrefix}-${Environment}"
       AccessControl: LogDeliveryWrite
       LifecycleConfiguration:
         Rules:
@@ -49,7 +53,7 @@ Resources:
             ExpirationInDays: 30
       Tags:
         - Key: Name
-          Value: !Sub "aws-waf-logs-${PJPrefix}"
+          Value: !Sub "aws-waf-logs-${PJPrefix}-${Environment}"
 
   BucketPolicyForWaflog:
     Type: "AWS::S3::BucketPolicy"
@@ -68,9 +72,9 @@ Outputs:
   S3BucketForCFAccessLog:
     Value: !Ref S3BucketForCFAccessLog
     Export:
-      Name: !Sub "${PJPrefix}-cf-accesslog-bucket"
+      Name: !Sub "${PJPrefix}-${Environment}-cf-accesslog-bucket"
 ### S3 for WAF ###
   S3BucketForWaflog:
     Value: !Ref S3BucketForWaflog
     Export:
-      Name: !Sub "aws-waf-logs-${PJPrefix}"
+      Name: !Sub "aws-waf-logs-${PJPrefix}-${Environment}"

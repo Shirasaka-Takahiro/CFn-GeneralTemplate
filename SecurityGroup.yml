@@ -8,6 +8,11 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
 ### MyIP ###
   MyIP:
     Description: IP address allowed to access EC2
@@ -22,10 +27,10 @@ Resources:
     Properties:
       GroupDescription: web-public-sg
       GroupName: WebPublicSG
-      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-vpc" }
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-web-public-sg"
+          Value: !Sub "${PJPrefix}-${Environment}-web-public-sg"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort : 22
@@ -46,10 +51,10 @@ Resources:
     Properties:
       GroupDescription: alb-sg
       GroupName: AlbSG
-      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-vpc" }
       Tags:
         - Key: Name
-          Value: !Sub "${PJPrefix}-alb-sg"
+          Value: !Sub "${PJPrefix}-${Environment}-alb-sg"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort : 80
@@ -66,10 +71,10 @@ Resources:
     Properties:
       GroupDescription: rds-sg
       GroupName: RDSSG
-      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-vpc" }
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-rds-sg"
+          Value: !Sub "${PJPrefix}-${Environment}-rds-sg"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort : 3306
@@ -82,10 +87,10 @@ Resources:
     Properties:
       GroupDescription: efs-sg
       GroupName: EFSSG
-      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-vpc" }
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-efs-sg"
+          Value: !Sub "${PJPrefix}-${Environment}-efs-sg"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort : 2049
@@ -98,10 +103,10 @@ Resources:
     Properties:
       GroupDescription: internal-sg
       GroupName: InternalSG
-      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-vpc" }
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-internal-sg"
+          Value: !Sub "${PJPrefix}-${Environment}-internal-sg"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 0
@@ -114,10 +119,10 @@ Resources:
     Properties:
       GroupDescription: elasticache-sg
       GroupName: ElastiCacheSG
-      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-vpc" }
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-elasticache-sg"
+          Value: !Sub "${PJPrefix}-${Environment}-elasticache-sg"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort : 6379
@@ -130,29 +135,29 @@ Outputs:
   WebPublicSG:
     Value: !Ref WebPublicSG
     Export:
-      Name: !Sub "${PJPrefix}-web-public-sg"
+      Name: !Sub "${PJPrefix}-${Environment}-web-public-sg"
 ## ALB Security Group ##
   AlbSG:
     Value: !Ref AlbSG
     Export:
-      Name: !Sub "${PJPrefix}-alb-sg"
+      Name: !Sub "${PJPrefix}-${Environment}-alb-sg"
 ## RDS Server Security Group ##
   RDSSG:
     Value: !Ref RDSSG
     Export:
-      Name: !Sub "${PJPrefix}-rds-sg"
+      Name: !Sub "${PJPrefix}-${Environment}-rds-sg"
 ## EFS Server Security Group ##
   EFSSG:
     Value: !Ref EFSSG
     Export:
-      Name: !Sub "${PJPrefix}-efs-sg"
+      Name: !Sub "${PJPrefix}-${Environment}-efs-sg"
 ## Internal Security Group ##
   InternalSG:
     Value: !Ref InternalSG
     Export:
-      Name: !Sub "${PJPrefix}-internal-sg"
+      Name: !Sub "${PJPrefix}-${Environment}-internal-sg"
 ## ElastiCache Security Group ##
   ElastiCacheSG:
     Value: !Ref ElastiCacheSG
     Export:
-      Name: !Sub "${PJPrefix}-elasticache-sg"
+      Name: !Sub "${PJPrefix}-${Environment}-elasticache-sg"

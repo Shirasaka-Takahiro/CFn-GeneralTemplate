@@ -7,13 +7,19 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
+
 
 Resources:
 # Target Group
   TargetGroup:
     Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties: 
-      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-vpc" }
+      VpcId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-vpc" }
       Name: !Sub "${PJPrefix}-tg"
       Protocol: HTTP
       Port: 80
@@ -28,7 +34,7 @@ Resources:
         HttpCode: 200
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-tg"
+          Value: !Sub "${PJPrefix}-${Environment}-tg"
       TargetGroupAttributes: 
         - Key: "deregistration_delay.timeout_seconds"
           Value: 300
@@ -39,8 +45,8 @@ Resources:
         - Key: "stickiness.lb_cookie.duration_seconds"
           Value: 86400
       Targets: 
-        - Id: { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-1a" }
-        - Id: { "Fn::ImportValue": !Sub "${PJPrefix}-web-public-1c" }
+        - Id: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-web-public-1a" }
+        - Id: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-web-public-1c" }
           Port: 80
 
 # Output Parameters:
@@ -49,8 +55,8 @@ Outputs:
   TargetGroup:
     Value: !Ref TargetGroup
     Export:
-      Name: !Sub "${PJPrefix}-tg"
+      Name: !Sub "${PJPrefix}-${Environment}-tg"
   TargetGroupFullName:
     Value: !GetAtt "TargetGroup.TargetGroupFullName"
     Export:
-      Name: !Sub "${PJPrefix}-TargetGroupFullName"
+      Name: !Sub "${PJPrefix}-${Environment}-TargetGroupFullName"

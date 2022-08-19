@@ -7,6 +7,11 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
 ### Web ACl Scope ###
   Scope:
     Type: String
@@ -36,14 +41,14 @@ Resources:
   WebAcl:
     Type: AWS::WAFv2::WebACL
     Properties: 
-      Name: !Sub "${PJPrefix}-web-acl"
+      Name: !Sub "${PJPrefix}-${Environment}-web-acl"
       Scope: !Ref Scope
       DefaultAction:
         Block: {}
       VisibilityConfig:
         CloudWatchMetricsEnabled: true
         SampledRequestsEnabled: true
-        MetricName: !Sub ${PJPrefix}-web-acl
+        MetricName: !Sub ${PJPrefix}-${Environment}-web-acl
       Rules:
         - Name: WAFIPsetRule
           Priority: 0
@@ -95,12 +100,12 @@ Resources:
     Type: AWS::WAFv2::LoggingConfiguration
     Properties:
       LogDestinationConfigs:
-        - !Sub "arn:aws:s3:::aws-waf-logs-${PJPrefix}"
+        - !Sub "arn:aws:s3:::aws-waf-logs-${PJPrefix}-${Environment}"
       ResourceArn: !GetAtt WebAcl.Arn
   WAFIPSet:
     Type: AWS::WAFv2::IPSet
     Properties:
-      Name: !Sub "${PJPrefix}-WAF-IPset"
+      Name: !Sub "${PJPrefix}-${Environment}-WAF-IPset"
       Scope: !Ref Scope
       IPAddressVersion: IPV4
       Addresses:

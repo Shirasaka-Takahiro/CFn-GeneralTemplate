@@ -7,6 +7,11 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
 ### Route53 Hosted Zone ###
   HostedZoneID: 
     Type: String
@@ -30,9 +35,9 @@ Resources:
         Type: "A"
         AliasTarget: 
           HostedZoneId: Z2FDTNDATAQYW2
-          DNSName: { "Fn::ImportValue": !Sub ${PJPrefix}-CloudFrontDistributionDomainName }
+          DNSName: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-CloudFrontDistributionDomainName" }
       - Name: !Sub "${FQDNALB}"
         Type: "A"
         AliasTarget: 
-          HostedZoneId: { "Fn::ImportValue": !Sub "${PJPrefix}-ALBHostedZoneId" }
-          DNSName: { "Fn::ImportValue": !Sub "${PJPrefix}-ALBDNSName" }
+          HostedZoneId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-ALBHostedZoneId" }
+          DNSName: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-ALBDNSName" }

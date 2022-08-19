@@ -7,6 +7,11 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
 ### VPC ###
   VPCCIDR:
     Type: String
@@ -42,14 +47,14 @@ Resources:
       InstanceTenancy: default
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-vpc"
+          Value: !Sub "${PJPrefix}-${Environment}-vpc"
 # Internet Gateway
   InternetGateway: 
     Type: "AWS::EC2::InternetGateway"
     Properties: 
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-igw"
+          Value: !Sub "${PJPrefix}-${Environment}-igw"
 
   IgwAttachment: 
     Type: "AWS::EC2::VPCGatewayAttachment"
@@ -67,7 +72,7 @@ Resources:
       VpcId: !Ref VPC 
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-public-subnet-a"
+          Value: !Sub "${PJPrefix}-${Environment}-public-subnet-a"
 
   PublicSubnetC: 
     Type: "AWS::EC2::Subnet"
@@ -77,7 +82,7 @@ Resources:
       VpcId: !Ref VPC 
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-public-subnet-c"
+          Value: !Sub "${PJPrefix}-${Environment}-public-subnet-c"
 
 ### Private Subnet ###
   PrivateSubnetA: 
@@ -88,7 +93,7 @@ Resources:
       VpcId: !Ref VPC 
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-private-subnet-a"
+          Value: !Sub "${PJPrefix}-${Environment}-private-subnet-a"
 
   PrivateSubnetC: 
     Type: "AWS::EC2::Subnet"
@@ -98,7 +103,7 @@ Resources:
       VpcId: !Ref VPC 
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-private-subnet-c"
+          Value: !Sub "${PJPrefix}-${Environment}-private-subnet-c"
 
 # RouteTable
 ### Public Subnet A Routing ###
@@ -108,7 +113,7 @@ Resources:
       VpcId: !Ref VPC 
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-public-route-a"
+          Value: !Sub "${PJPrefix}-${Environment}-public-route-a"
 
   PublicRouteA: 
     Type: "AWS::EC2::Route"
@@ -130,7 +135,7 @@ Resources:
       VpcId: !Ref VPC 
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-public-route-c"
+          Value: !Sub "${PJPrefix}-${Environment}-public-route-c"
 
   PublicRouteC: 
     Type: "AWS::EC2::Route"
@@ -152,7 +157,7 @@ Resources:
       VpcId: !Ref VPC 
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-private-route-a"
+          Value: !Sub "${PJPrefix}-${Environment}-private-route-a"
 
 ### Private Subnet C Routing ###
   PrivateRTBC: 
@@ -161,7 +166,7 @@ Resources:
       VpcId: !Ref VPC 
       Tags: 
         - Key: Name
-          Value: !Sub "${PJPrefix}-private-route-c"
+          Value: !Sub "${PJPrefix}-${Environment}-private-route-c"
 
 
 # Output Parameters:
@@ -170,31 +175,31 @@ Outputs:
   VPC:
     Value: !Ref VPC
     Export:
-      Name: !Sub "${PJPrefix}-vpc"
+      Name: !Sub "${PJPrefix}-${Environment}-vpc"
 
 ### Subnet ###
 ## Internet Gateway ##
   InternetGateway:
     Value: !Ref InternetGateway
     Export:
-      Name: !Sub "${PJPrefix}-igw"
+      Name: !Sub "${PJPrefix}-${Environment}-igw"
 ## Public Subnet A ##
   PublicSubnetA:
     Value: !Ref PublicSubnetA
     Export:
-      Name: !Sub "${PJPrefix}-public-subnet-a"
+      Name: !Sub "${PJPrefix}-${Environment}-public-subnet-a"
 ## Public Subnet C ##
   PublicSubnetC:
     Value: !Ref PublicSubnetC
     Export:
-      Name: !Sub "${PJPrefix}-public-subnet-c"
+      Name: !Sub "${PJPrefix}-${Environment}-public-subnet-c"
 ## Private Subnet A ##
   PrivateSubnetA:
     Value: !Ref PrivateSubnetA
     Export:
-      Name: !Sub "${PJPrefix}-private-subnet-a"
+      Name: !Sub "${PJPrefix}-${Environment}-private-subnet-a"
 ## Private Subnet C ##
   PrivateSubnetC:
     Value: !Ref PrivateSubnetC
     Export:
-      Name: !Sub "${PJPrefix}-private-subnet-c"
+      Name: !Sub "${PJPrefix}-${Environment}-private-subnet-c"

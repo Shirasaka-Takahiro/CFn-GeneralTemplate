@@ -7,6 +7,11 @@ Parameters:
   PJPrefix:
     Type: String
     Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
 ### ALB SSL Listener Policy ###
   ALBSSLPolicy:
     Type: String
@@ -19,7 +24,7 @@ Resources:
   ALB: 
     Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
     Properties: 
-      Name: !Sub "${PJPrefix}-alb"
+      Name: !Sub "${PJPrefix}-${Environment}-alb"
       Scheme: "internet-facing"
       LoadBalancerAttributes: 
         - Key: "deletion_protection.enabled"
@@ -27,10 +32,10 @@ Resources:
         - Key: "idle_timeout.timeout_seconds"
           Value: 4000
       SecurityGroups:
-        - { "Fn::ImportValue": !Sub "${PJPrefix}-alb-sg" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-alb-sg" }
       Subnets: 
-        - { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-a" }
-        - { "Fn::ImportValue": !Sub "${PJPrefix}-public-subnet-c" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-public-subnet-a" }
+        - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-public-subnet-c" }
 
 ### ALB Listener ###
   ALBListenerHTTP: 
@@ -52,7 +57,7 @@ Resources:
       Certificates:
         - CertificateArn: !ImportValue ACMApNorthEast
       DefaultActions:
-        - TargetGroupArn: { "Fn::ImportValue": !Sub "${PJPrefix}-tg" }
+        - TargetGroupArn: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-tg" }
           Type: forward
       LoadBalancerArn: !Ref ALB
       Port: 443
@@ -65,20 +70,20 @@ Outputs:
   ALB:
     Value: !Ref ALB
     Export:
-      Name: !Sub "${PJPrefix}-alb"
+      Name: !Sub "${PJPrefix}-${Environment}-alb"
   ALBLoadBalancerName:
     Value: !GetAtt "ALB.LoadBalancerName"
     Export:
-      Name: !Sub "${PJPrefix}-ALBLoadBalancerName"
+      Name: !Sub "${PJPrefix}-${Environment}-ALBLoadBalancerName"
   ALBLoadBalancerFullName:
     Value: !GetAtt "ALB.LoadBalancerFullName"
     Export:
-      Name: !Sub "${PJPrefix}-ALBLoadBalancerFullName"
+      Name: !Sub "${PJPrefix}-${Environment}-ALBLoadBalancerFullName"
   ALBDNSName:
     Value: !GetAtt "ALB.DNSName"
     Export:
-      Name: !Sub "${PJPrefix}-ALBDNSName"
+      Name: !Sub "${PJPrefix}-${Environment}-ALBDNSName"
   ALBHostedZoneId:
     Value: !GetAtt "ALB.CanonicalHostedZoneID"
     Export:
-      Name: !Sub "${PJPrefix}-ALBHostedZoneId"
+      Name: !Sub "${PJPrefix}-${Environment}-ALBHostedZoneId"

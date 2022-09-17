@@ -19,7 +19,7 @@ Parameters:
     Description: ECS AMI
   ECSInstanceClass:
     Type: String
-    Default: t3.micro
+    Default: t3.medium
     Description: ECS InstanceClass
   ECSStorageSize:
     Type: String

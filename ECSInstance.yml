@@ -15,7 +15,7 @@ Parameters:
 ### ECS Instance ###
   ECSAMI:
     Type: String
-    Default: ami-088c2be60aaa4c704
+    Default: ami-0f2aaee29b2f7ef46
     Description: ECS AMI
   ECSInstanceClass:
     Type: String
@@ -52,16 +52,13 @@ Resources:
             - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-web-public-sg" }
             - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-internal-sg" }
       UserData:
-        Fn::Base64: !Sub
+        Fn::Base64: !Sub |
             #!/bin/bash
             yum -y update
-            yum -y remove mariadb-libs
-            yum -y remove mysql-community-*
-            rm -rf /var/lib/mysql/
-            yum list | grep mysql-community-server
-            yum -y localinstall http://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm
-            yum -y install mysql-community-server
-            yum -y install mysql-community-client
+            rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
+            rpm -ivh https://dev.mysql.com/get/mysql80-community-release-el6-1.noarch.rpm
+            yum -y install mysql-community-server* mysql-community-devel*
+            echo 'default_authentication_plugin=mysql_native_password' >> /etc/my.cnf
       Tags:
           - Key: Name
             Value: !Sub "${PJPrefix}-${Environment}-ECS-public-1a"
@@ -96,16 +93,13 @@ Resources:
             - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-ECS-public-sg" }
             - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-internal-sg" }
       UserData:
-        Fn::Base64: !Sub
+        Fn::Base64: !Sub |
             #!/bin/bash
             yum -y update
-            yum -y remove mariadb-libs
-            yum -y remove mysql-community-*
-            rm -rf /var/lib/mysql/
-            yum list | grep mysql-community-server
-            yum -y localinstall http://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm
-            yum -y install mysql-community-server
-            yum -y install mysql-community-client 
+            rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
+            rpm -ivh https://dev.mysql.com/get/mysql80-community-release-el6-1.noarch.rpm
+            yum -y install mysql-community-server* mysql-community-devel*
+            echo 'default_authentication_plugin=mysql_native_password' >> /etc/my.cnf
       Tags:
           - Key: Name
             Value: !Sub "${PJPrefix}-${Environment}-ECS-Public-1c"

@@ -1,0 +1,177 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: EC2 Template
+
+# Input Parameters
+Parameters:
+### Project Prefix ###
+  PJPrefix:
+    Type: String
+    Description: Project Code
+### Environment ###
+  Environment:
+    Type: String
+    Default: stg,prod
+    Description: Environment
+### ECS Instance ###
+  ECSAMI:
+    Type: String
+    Default: ami-088c2be60aaa4c704
+    Description: ECS AMI
+  ECSInstanceClass:
+    Type: String
+    Default: t3.micro
+    Description: ECS InstanceClass
+  ECSStorageSize:
+    Type: String
+    Default: 30
+    Description: ECS Instance's root volume Sorage size
+  ### Key pair ###
+  KeyName:
+    Description: EC2 Keyname
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    Description: Key Pair
+
+Resources:
+# Instance
+### ECS Instance Public 1a ###
+  ECSInstance1A: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: !Ref ECSAMI
+      InstanceType: !Ref ECSInstanceClass
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: '/dev/xvda'
+          Ebs:
+            VolumeSize: !Ref ECSStorageSize
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-public-subnet-a" }
+          GroupSet: 
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-web-public-sg" }
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-internal-sg" }
+      UserData:
+        Fn::Base64: !Sub
+          - |
+            #!/bin/bash
+            yum -y update
+            yum -y remove mariadb-libs
+            yum -y remove mysql-community-*
+            rm -rf /var/lib/mysql/
+            yum list | grep mysql-community-server
+            yum -y localinstall http://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm
+            yum -y install mysql-community-server
+            yum -y install mysql-community-client
+      Tags:
+          - Key: Name
+            Value: !Sub "${PJPrefix}-${Environment}-ECS-public-1a"
+          - Key: DLM_tag
+            Value: !Sub "${PJPrefix}-${Environment}-DLM-storage"
+  ECSInstance1AEIP:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
+  ECSInstance1AEIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref ECSInstance1A
+      EIP: !Ref ECSInstance1AEIP
+
+### ECS Instance private 1c ###
+  ECSInstance1C: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: !Ref ECSAMI
+      InstanceType: !Ref ECSInstanceClass
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: '/dev/xvda'
+          Ebs:
+            VolumeSize: !Ref ECSStorageSize
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          SubnetId: { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-public-subnet-c" }
+          GroupSet: 
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-ECS-public-sg" }
+            - { "Fn::ImportValue": !Sub "${PJPrefix}-${Environment}-internal-sg" }
+      UserData:
+        Fn::Base64: !Sub
+          - |
+            #!/bin/bash
+            yum -y update
+            yum -y remove mariadb-libs
+            yum -y remove mysql-community-*
+            rm -rf /var/lib/mysql/
+            yum list | grep mysql-community-server
+            yum -y localinstall http://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm
+            yum -y install mysql-community-server
+            yum -y install mysql-community-client 
+      Tags:
+          - Key: Name
+            Value: !Sub "${PJPrefix}-${Environment}-ECS-Public-1c"
+          - Key: DLM_tag
+            Value: !Sub "${PJPrefix}-${Environment}-DLM-storage"
+  ECSInstance1CEIP:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
+  ECSInstance1CEIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref ECSInstance1C
+      EIP: !Ref ECSInstance1CEIP
+
+### DLM ###
+  DLM:
+    Type: "AWS::DLM::LifecyclePolicy"
+    Properties:
+      Description: "Daily EBS Snapshot"
+      State: "ENABLED"
+      ExecutionRoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/AWSDataLifecycleManagerDefaultRole"
+      PolicyDetails:
+        ResourceTypes:
+          - "VOLUME"
+        TargetTags:
+          -
+            Key: "Name"
+            Value: !Sub "${PJPrefix}-${Environment}-DLM-storage"
+        Schedules:
+          -
+            Name: !Sub "${PJPrefix}-${Environment}-daily-snapshot"
+            TagsToAdd:
+              -
+                Key: "type"
+                Value: "DailySnapshot"
+            CreateRule:
+              Interval: 24
+              IntervalUnit: "HOURS"
+              Times:
+                - "09:00"
+            RetainRule:
+              Count: 7
+            CopyTags: true
+
+# Output Parameters:
+### ECSInstance1A ###
+Outputs:
+  ECSInstance1A:
+    Value: !Ref ECSInstance1A
+    Export:
+      Name: !Sub "${PJPrefix}-${Environment}-ecs-public-1a"
+## ECSInstance1C ##
+  ECSInstance1C:
+    Value: !Ref ECSInstance1C
+    Export:
+      Name: !Sub "${PJPrefix}-${Environment}-ECS-public-1c"
+### ECSInstance1A Public IP ###
+  ECSInstance1APublicIP:
+    Value: !GetAtt ECSInstance1A.PublicIp
+    Export:
+      Name: !Sub "${PJPrefix}-${Environment}-ECSInstance1APublicIP"
+### ECSInstance1C Public IP ###
+  ECSInstance1CPublicIP:
+    Value: !GetAtt ECSInstance1C.PublicIp
+    Export:
+      Name: !Sub "${PJPrefix}-${Environment}-ECSInstance1CPublicIP"

@@ -59,6 +59,7 @@ Resources:
             rpm -ivh https://dev.mysql.com/get/mysql80-community-release-el6-1.noarch.rpm
             yum -y install mysql-community-server* mysql-community-devel*
             echo 'default_authentication_plugin=mysql_native_password' >> /etc/my.cnf
+            echo ECS_CLUSTER=[Cluster Name] >> /etc/ecs/ecs.config
       Tags:
           - Key: Name
             Value: !Sub "${PJPrefix}-${Environment}-ECS-public-1a"
@@ -100,6 +101,7 @@ Resources:
             rpm -ivh https://dev.mysql.com/get/mysql80-community-release-el6-1.noarch.rpm
             yum -y install mysql-community-server* mysql-community-devel*
             echo 'default_authentication_plugin=mysql_native_password' >> /etc/my.cnf
+            echo ECS_CLUSTER=[Cluster Name] >> /etc/ecs/ecs.config
       Tags:
           - Key: Name
             Value: !Sub "${PJPrefix}-${Environment}-ECS-Public-1c"
